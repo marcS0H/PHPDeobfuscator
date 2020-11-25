@@ -25,6 +25,7 @@ class MiscFunctions implements FunctionReducer
         return array(
             'preg_replace',
             'reset',
+            'constant',
             'create_function',
         );
     }
@@ -35,6 +36,8 @@ class MiscFunctions implements FunctionReducer
         switch ($name) {
         case 'preg_replace':
             return $this->safePregReplace($args[0], $args[1], $args[2]);
+        case 'constant':
+            return new Node\Expr\ConstFetch(new Node\Name($args[0]));
         case 'reset':
             // Pass by reference
             $arg = &$args[0];
