@@ -37,6 +37,7 @@ class Deobfuscator
         $funcCallReducer = new Reducer\FuncCallReducer();
         $funcCallReducer->addReducer(new Reducer\FuncCallReducer\FunctionSandbox());
         $funcCallReducer->addReducer(new Reducer\FuncCallReducer\FileSystemCall($this->fileSystem));
+        $funcCallReducer->addReducer(new Reducer\FuncCallReducer\Assert($evalReducer));
         $funcCallReducer->addReducer(new Reducer\FuncCallReducer\MiscFunctions($evalReducer, $resolver));
         $funcCallReducer->addReducer(new Reducer\FuncCallReducer\PassThrough());
 
