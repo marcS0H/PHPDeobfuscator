@@ -57,6 +57,9 @@ class Deobfuscator
         } else {
             $this->metaVisitor = null;
         }
+        // Visitors used to do pattern matching
+        $this->secondPass->addVisitor(new NodeConnectingVisitor);
+        $this->secondPass->addVisitor(new RuleMatchingVisitor($this));
     }
 
     public function getFilesystem()
