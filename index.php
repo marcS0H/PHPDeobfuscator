@@ -7,8 +7,8 @@ ini_set('memory_limit', '512M');
 ini_set('xdebug.max_nesting_level', 1000);
 set_time_limit(20);
 
-function deobfuscate($code, $filename, $dumpOrig) {
-    $deobf = new Deobfuscator($dumpOrig);
+function deobfuscate($code, $filename, $dumpOrig, $getStats) {
+    $deobf = new Deobfuscator($dumpOrig, false, $getStats);
     $virtualPath = realpath($filename);
     $deobf->getFilesystem()->write($virtualPath, $code);
     $deobf->setCurrentFilename($virtualPath);
@@ -20,15 +20,16 @@ function deobfuscate($code, $filename, $dumpOrig) {
 
 $nodeDumper = new PhpParser\NodeDumper();
 if (php_sapi_name() == 'cli') {
-    $opts = getopt('tof:');
+    $opts = getopt('tosf:');
     if (!isset($opts['f'])) {
         die("Missing required parameter -f\n");
     }
     $filename = $opts['f'];
+    $get_stats = isset($opts['s']);
     $orig = isset($opts['o']);
     $current_code = file_get_contents( $filename );
     try {
-        list($tree, $current_code) = deobfuscate($current_code, $filename, $orig);
+        list($tree, $current_code) = deobfuscate($current_code, $filename, $orig, $get_stats);
         if (isset($opts['t'])) {
             echo $nodeDumper->dump($tree), "\n";
         }

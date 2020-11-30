@@ -13,7 +13,7 @@ class Deobfuscator
     private $fileSystem;
     private $filename;
 
-    public function __construct($dumpOrig = false, $annotateReductions = false)
+    public function __construct($dumpOrig = false, $annotateReductions = false, $getStats = false)
     {
         $this->parser = (new PhpParser\ParserFactory())->create(PhpParser\ParserFactory::ONLY_PHP5);
         $this->prettyPrinter = new ExtendedPrettyPrinter();
@@ -59,7 +59,12 @@ class Deobfuscator
         }
         // Visitors used to do pattern matching
         $this->secondPass->addVisitor(new NodeConnectingVisitor);
-        $this->secondPass->addVisitor(new RuleMatchingVisitor($this));
+        if( $getStats ) {
+            $this->secondPass->addVisitor(new StatsVisitor($this));
+        }
+        else {
+            $this->secondPass->addVisitor(new RuleMatchingVisitor($this));
+        }
     }
 
     public function getFilesystem()
