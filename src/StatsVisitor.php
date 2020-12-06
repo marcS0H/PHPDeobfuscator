@@ -2,6 +2,13 @@
 use PhpParser\{NodeVisitorAbstract, Node};
 use PhpParser\PrettyPrinter;
 
+/**
+ * The StatsVisitor is a script I tweak from time to time to get some stats about
+ * just about anything on a given PHP script dataset. 
+ * 
+ * As it is currently implemented, it can easily spit out some numbers about the
+ * variables and function call used throughout the PHP file being analyzed.
+ */
 class StatsVisitor extends NodeVisitorAbstract {
     // Function Call Statistics
     private $funcCallStats;
@@ -71,6 +78,6 @@ class StatsVisitor extends NodeVisitorAbstract {
     // For context, a new traversal is launched for every eval'ed statements. This is a problem
     // if you rely on NodeVisitor's afterTraverse method
     public function __destruct() {
-        echo json_encode($this->varNameStats) . PHP_EOL;
+        echo json_encode($this->funcCallStats) . PHP_EOL;
     }
 }
