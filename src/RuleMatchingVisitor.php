@@ -21,6 +21,8 @@ class RuleMatchingVisitor extends PhpParser\NodeVisitorAbstract
     // Nodes that _may_ indicate the script is dealing with memory-related operations
     // or doing buffer maths that is often found in file-handling scripts.
     private $memoryHandlingEvidence = [];
+    // Nodes that may be executing shell commands or arbitrary functions.
+    private $dangerousFunctionsEvidence = [];
 
     public function __construct(Deobfuscator $deobf)
     {
@@ -32,6 +34,7 @@ class RuleMatchingVisitor extends PhpParser\NodeVisitorAbstract
         $this->containsNamespaceDefinition($node);
         $this->containsPhpDocComments($node);
         $this->findMemoryHandlingEvidence($node);
+        $this->findDangerousFunctionsEvidence($node);
     }
 
     public function __destruct() 
@@ -39,7 +42,10 @@ class RuleMatchingVisitor extends PhpParser\NodeVisitorAbstract
         if(
             !$this->usesNamespaces &&
             !$this->usesPhpDocComments &&
-            $this->memoryHandlingEvidence
+            (
+                $this->memoryHandlingEvidence ||
+                $this->dangerousFunctionsEvidence
+            )
         ){
             print_r("{$this->deobf->getCurrentFileName()} looks like a malware!\n");
         }
@@ -69,7 +75,7 @@ class RuleMatchingVisitor extends PhpParser\NodeVisitorAbstract
         }
     }
 
-    public function findMemoryHandlingEvidence(Node $node) 
+    public function findMemoryHandlingEvidence(Node $node)
     {
         if($node instanceof Node\Scalar\LNumber) {
             // 1024 is a multiple that is often used when dealing disk space and file sizes 
@@ -80,6 +86,21 @@ class RuleMatchingVisitor extends PhpParser\NodeVisitorAbstract
                     $this->memoryHandlingEvidence[] = $node;
                 }
             }
+
+        }
+    }
+    public function findDangerousFunctionsEvidence(Node $node) 
+    {
+        if($node instanceof Node\Expr\FuncCall) {
+            if(in_array($node->name, ['passthru', 'system'])) {
+                $this->dangerousFunctionsEvidence[] = $node;
+            }
+            elseif(is_object($node->name) && $node->name instanceof Node\Expr\Variable) {
+                $this->dangerousFunctionsEvidence[] = $node;
+            }
+        }
+        elseif($node instanceof Node\Expr\ShellExec) {
+            $this->dangerousFunctionsEvidence[] = $node;
         }
     }
 }
